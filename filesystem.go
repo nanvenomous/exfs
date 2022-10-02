@@ -21,6 +21,7 @@ func NewFileSystem() *FileSystem {
 	return &FileSystem{}
 }
 
+// Execute runs the command with the stdout & stderr as the operating systems stdout & stderr
 func (fs *FileSystem) Execute(command string, args []string) error {
 	var (
 		err error
