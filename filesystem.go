@@ -140,7 +140,6 @@ func (fs *FileSystem) FindFileInAboveCurDir(flNm string) (string, error) {
 			return chkPth, nil
 		}
 		chkPth = strings.Join(wdArr[:len(wdArr)-1], "/")
-		fmt.Println(chkPth, hd)
 		if chkPth == hd {
 			return "", errors.New(fmt.Sprintf("Reached user home dir & did not find file: %s", flNm))
 		}
