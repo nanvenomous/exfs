@@ -1,3 +1,3 @@
-module github.com/nanvenomous/fs
+module github.com/nanvenomous/filesystem
 
 go 1.19
