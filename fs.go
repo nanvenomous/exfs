@@ -14,7 +14,14 @@ const (
 	EDITOR_ENV_VAR = "EDITOR"
 )
 
-func Execute(command string, args []string) error {
+type FS struct {
+}
+
+func NewFS() *FS {
+	return &FS{}
+}
+
+func (fs *FS) Execute(command string, args []string) error {
 	var (
 		err error
 		cmd *exec.Cmd
@@ -32,7 +39,7 @@ func Execute(command string, args []string) error {
 	return nil
 }
 
-func Capture(command string, args []string) (string, string, error) {
+func (fs *FS) Capture(command string, args []string) (string, string, error) {
 	var (
 		err        error
 		cmd        *exec.Cmd
@@ -51,7 +58,7 @@ func Capture(command string, args []string) (string, string, error) {
 	return outb.String(), "", nil
 }
 
-func EditTemporaryFile(nm string, txt string) (string, error) {
+func (fs *FS) EditTemporaryFile(nm string, txt string) (string, error) {
 	var (
 		err        error
 		editor     string
@@ -74,7 +81,7 @@ func EditTemporaryFile(nm string, txt string) (string, error) {
 		return "", err
 	}
 
-	err = Execute(editor, []string{tempFile.Name()})
+	err = fs.Execute(editor, []string{tempFile.Name()})
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +110,7 @@ func EditTemporaryFile(nm string, txt string) (string, error) {
 // FindFileInAboveCurDir
 // checks each directory to contain the filename argument
 // will search current dir & up directory tree until it reaches user home dir
-func FindFileInAboveCurDir(flNm string) (string, error) {
+func (fs *FS) FindFileInAboveCurDir(flNm string) (string, error) {
 	var (
 		err            error
 		wd, chkPth, hd string
