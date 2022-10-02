@@ -39,6 +39,7 @@ func (fs *FileSystem) Execute(command string, args []string) error {
 	return nil
 }
 
+// Capture outputs the stdout & stderr string responses from a command
 func (fs *FileSystem) Capture(command string, args []string) (string, string, error) {
 	var (
 		err        error
