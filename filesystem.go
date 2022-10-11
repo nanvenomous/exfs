@@ -24,7 +24,6 @@ func NewFileSystem() *FileSystem {
 // Execute runs the command with the stdout & stderr as the operating systems stdout & stderr
 func (fs *FileSystem) Execute(command string, args []string) error {
 	var (
-		err error
 		cmd *exec.Cmd
 	)
 	cmd = exec.Command(command, args...)
@@ -33,11 +32,7 @@ func (fs *FileSystem) Execute(command string, args []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
 }
 
 // Capture outputs the stdout & stderr string responses from a command
@@ -54,10 +49,7 @@ func (fs *FileSystem) Capture(command string, args []string) (string, string, er
 	cmd.Stderr = &errb
 
 	err = cmd.Run()
-	if err != nil {
-		return "", errb.String(), err
-	}
-	return outb.String(), "", nil
+	return outb.String(), errb.String(), err
 }
 
 func (fs *FileSystem) EditTemporaryFile(nm string, txt string) (string, error) {
