@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -78,6 +79,42 @@ func TestCapture(t *testing.T) {
 	outs, errs, err = MockFilesystem.Capture("logger", []string{"-s", mockStdErr})
 	assert.Contains(t, errs, mockStdErr)
 	assert.Nil(t, err)
+}
+
+func TestEditTemporaryFile(t *testing.T) {
+	var (
+		err                error
+		actualEditedString string
+		originalTxt        = "mock original text "
+		formattingText     = "mock extra text"
+		mockEditorEnvVal   = "mockEditorEnvVal"
+	)
+	os.Setenv(EDITOR_ENV_VAR, mockEditorEnvVal)
+	actualExecute := execute
+
+	// mock adding text to end of file
+	execute = func(command string, args []string) error {
+		var (
+			err error
+			f   *os.File
+		)
+
+		assert.Equal(t, mockEditorEnvVal, command)
+
+		f, err = os.OpenFile(args[0],
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		_, err = f.WriteString(formattingText)
+		return err
+	}
+	defer func() { execute = actualExecute }()
+
+	actualEditedString, err = MockFilesystem.EditTemporaryFile("tmpFile.txt", originalTxt)
+	assert.Nil(t, err)
+	assert.Equal(t, fmt.Sprintf("%s%s", originalTxt, formattingText), actualEditedString)
 }
 
 func TestFindFileInAboveCurDir(t *testing.T) {

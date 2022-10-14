@@ -21,8 +21,7 @@ func NewFileSystem() *FileSystem {
 	return &FileSystem{}
 }
 
-// Execute runs the command with the stdout & stderr as the operating systems stdout & stderr
-func (fs *FileSystem) Execute(command string, args []string) error {
+var execute = func(command string, args []string) error {
 	var (
 		cmd *exec.Cmd
 	)
@@ -35,8 +34,12 @@ func (fs *FileSystem) Execute(command string, args []string) error {
 	return cmd.Run()
 }
 
-// Capture outputs the stdout & stderr string responses from a command
-func (fs *FileSystem) Capture(command string, args []string) (string, string, error) {
+// Execute runs the command with the stdout, stdin & stderr as the operating systems stdout & stderr
+func (fs *FileSystem) Execute(command string, args []string) error {
+	return execute(command, args)
+}
+
+var capture = func(command string, args []string) (string, string, error) {
 	var (
 		err        error
 		cmd        *exec.Cmd
@@ -52,6 +55,14 @@ func (fs *FileSystem) Capture(command string, args []string) (string, string, er
 	return outb.String(), errb.String(), err
 }
 
+// Capture outputs the stdout & stderr string responses from a command
+func (fs *FileSystem) Capture(command string, args []string) (string, string, error) {
+	return capture(command, args)
+}
+
+// EditTemporaryFile give a temp file name with extension and some text for the user to edit
+// the text will be opened in editor defined by EDITOR environment variable
+// returns the text after user edits
 func (fs *FileSystem) EditTemporaryFile(nm string, txt string) (string, error) {
 	var (
 		err        error
@@ -75,7 +86,7 @@ func (fs *FileSystem) EditTemporaryFile(nm string, txt string) (string, error) {
 		return "", err
 	}
 
-	err = fs.Execute(editor, []string{tempFile.Name()})
+	err = execute(editor, []string{tempFile.Name()})
 	if err != nil {
 		return "", err
 	}
