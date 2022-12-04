@@ -3,7 +3,7 @@ package filesystem
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -56,10 +56,10 @@ func TestExecute(t *testing.T) {
 	defer tdn(t)
 
 	var err error
-	err = MockFilesystem.Execute("touch", []string{"hello.txt"})
+	err = MockFilesystem.Execute("git", []string{"remote"})
 	assert.ErrorIs(t, err, nil)
 	err = MockFilesystem.Execute("notACommand", []string{})
-	assert.ErrorContains(t, err, "file not found")
+	assert.ErrorContains(t, err, "notACommand")
 }
 
 func TestCapture(t *testing.T) {
@@ -70,15 +70,14 @@ func TestCapture(t *testing.T) {
 		err        error
 		errs, outs string
 	)
-	outs, errs, err = MockFilesystem.Capture("touch", []string{"hello.txt"})
-	assert.ErrorIs(t, err, nil)
+	outs, errs, err = MockFilesystem.Capture("git", []string{})
+	assert.NotNil(t, err)
 	assert.Empty(t, errs)
-	assert.Empty(t, outs)
+	assert.Contains(t, outs, "usage: git")
 
-	mockStdErr := "mock_standard_error_output"
-	outs, errs, err = MockFilesystem.Capture("logger", []string{"-s", mockStdErr})
-	assert.Contains(t, errs, mockStdErr)
-	assert.Nil(t, err)
+	outs, errs, err = MockFilesystem.Capture("git", []string{"cow"})
+	assert.Contains(t, errs, "'cow' is not a git command")
+	assert.NotNil(t, err)
 }
 
 func TestEditTemporaryFile(t *testing.T) {
@@ -89,7 +88,7 @@ func TestEditTemporaryFile(t *testing.T) {
 		formattingText     = "mock extra text"
 		mockEditorEnvVal   = "mockEditorEnvVal"
 	)
-	os.Setenv(EDITOR_ENV_VAR, mockEditorEnvVal)
+	// os.Setenv(EDITOR_ENV_VAR, mockEditorEnvVal)
 	actualExecute := execute
 
 	// mock adding text to end of file
@@ -112,7 +111,7 @@ func TestEditTemporaryFile(t *testing.T) {
 	}
 	defer func() { execute = actualExecute }()
 
-	actualEditedString, err = MockFilesystem.EditTemporaryFile("tmpFile.txt", originalTxt)
+	actualEditedString, err = MockFilesystem.EditTemporaryFile(mockEditorEnvVal, "tmpFile.txt", originalTxt)
 	assert.Nil(t, err)
 	assert.Equal(t, fmt.Sprintf("%s%s", originalTxt, formattingText), actualEditedString)
 }
@@ -142,12 +141,12 @@ func TestFindFileInAboveCurDir(t *testing.T) {
 	assert.Nil(t, fl.Close())
 	fullPth, err = MockFilesystem.FindFileInAboveCurDir(mockFileName)
 	assert.Nil(t, err)
-	assert.Contains(t, fullPth, path.Join(t.Name(), mockFileName))
+	assert.Contains(t, fullPth, filepath.Join(t.Name(), mockFileName))
 
 	// Finds file above cur directory
 	assert.Nil(t, os.Mkdir(mockDir, os.ModePerm))
 	assert.Nil(t, os.Chdir(mockDir))
 	fullPth, err = MockFilesystem.FindFileInAboveCurDir(mockFileName)
 	assert.Nil(t, err)
-	assert.Contains(t, fullPth, path.Join(t.Name(), mockFileName))
+	assert.Contains(t, fullPth, filepath.Join(t.Name(), mockFileName))
 }
